@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Api de peliculas</title>
+    <style>
+        body {
+            background: #a200ec; 
+            font-family: 'Arial', sans-serif;
+            color: #ffffff;
+            margin: 0;
+            padding: 10px;
+        }
+
+        header {
+            background: #a200ec;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .search {
+            background: #ffffff;
+            border: 2px solid #555555;
+            padding: 8px;
+            font-size: 16px;
+            width: 100%;
+            max-width: 350px;
+        }
+
+        main {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+            gap: 15px;
+            padding: 15px;
+            max-width: 1400px; 
+            margin: 0 auto;
+        }
+
+        .movie {
+            background: #555555;
+            border: 1px solid #666666;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .movie img {
+            width: 100%;
+            height: 400px; 
+            object-fit: cover;
+        }
+
+        .movie-info {
+            padding: 15px; 
+            text-align: center;
+        }
+
+        .movie-info h3 {
+            font-size: 20px; 
+            margin-bottom: 8px; 
+        }
+
+        .movie-info span {
+            background: #888888;
+            color: #ffffff;
+            padding: 8px 15px; 
+            font-size: 16px;
+            display: inline-block; 
+        }
+
+        .movie-info span.blue {
+            background: #0000ff;
+        }
+
+        .movie-info span.orange {
+            background: #ff9900;
+        }
+
+        .movie-info span.red {
+            background: #ff0000;
+        }
+
+        .overview {
+            background: #444444;
+            color: #ffffff;
+            padding: 15px; 
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-in-out;
+        }
+
+        .movie:hover .overview {
+            max-height: 250px; 
+        }
+
+        .overview h3 {
+            font-size: 18px; 
+            margin-bottom: 8px; 
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <form id="form">
+        <input type="text" id="search" class="search" placeholger="Busca tu pelicula">
+        </form>
+    </header>
+    <main id="main"></main>
+    <script>
+        const API_URL = 'https://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=3fd2be6f0c70a2a598f084ddfb75487c&page=1';
+        const IMG_PATH = 'https://image.tmdb.org/t/p/w1280';
+        const SEARCH_API = 'https://api.themoviedb.org/3/search/movie?api_key=3fd2be6f0c70a2a598f084ddfb75487c&query="'; 
+        
+        const main = document.getElementById('main');
+        const form = document.getElementById('form');
+        const search = document.getElementById('search');
+
+        getMovies (API_URL)
+
+        async function getMovies(url){
+            const res = await fetch(url);
+            const data = await res.json();
+            showMovies(data.results);
+        }
+        function showMovies(movies){
+            main.innerHTML = '';
+            movies.forEach((movie) =>{
+
+                const{title, poster_path, vote_average, overview} = movie;
+
+                const movieElements = document.createElement('div');
+                movieElements.classList.add('movie');
+                movieElements.innerHTML=`
+                <img src = "${IMG_PATH + poster_path}" alt="${title}">
+                <div class="movie-info">
+                    <h3>${title}</h3>
+                    <span class = "${getClassByRate(vote_average)}">
+                        ${vote_average}</span>
+                        </div>
+                        <div class = "overview">
+                            <h3>Overview</h3>
+                            ${overview}
+                            </div>`;
+                    main.appendChild(movieElements);
+            }); }
+            function getClassByRate(vote){
+                if(vote >= 8){
+                    return 'blue';
+                }else if(vote >=5){
+                    return 'orange';
+                }else{
+                    return 'red';
+                }}
+                form.addEventListener('submit', (e) =>{
+                    e.preventDefault()
+                    const searchTerm = search.value;
+                    if(searchTerm && searchTerm !== ''){
+                        getMovies(SEARCH_API + searchTerm)
+                        search.value='';
+                    }else{window.location.reload();}
+                })
+    </script>
+</body>
+</html>

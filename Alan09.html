@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DragonBallZ</title>
+    <style>
+ :root {
+    --color-primario: #1e1e2f;
+    --color-secunadrio: #3e3b92;
+    --color-terciario: #ffcb05;
+    --color-cuaarto: #4caf50;
+    --color-quinto: #292c6d;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--color-primario);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: white;
+}
+
+header {
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--color-secunadrio);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.search {
+    background-color: var(--color-primario);
+    border: 2px solid var(--color-terciario);
+    border-radius: 30px;
+    font-size: 16px;
+    padding: 10px 20px;
+    color: var(--color-terciario);
+    transition: 0.3s ease;
+}
+
+.search::placeholder {
+    color: var(--color-terciario);
+    opacity: 0.7;
+}
+
+.search:focus {
+    outline: none;
+    background-color: var(--color-quinto);
+    border-color: var(--color-cuaarto);
+}
+
+main {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 20px;
+    gap: 20px;
+}
+
+.personaje {
+    width: 350px;
+    background-color: var(--color-secunadrio);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+}
+
+.personaje:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.7);
+}
+
+.personaje img {
+    width: 100%;
+    height: auto;
+    max-height: 350px;
+    object-fit: contain;
+    background-color: #000;
+}
+
+.personaje-info {
+    padding: 15px;
+    color: var(--color-terciario);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.personaje-info h1 {
+    font-size: 1.2rem;
+    margin-bottom: 5px;
+}
+
+.personaje-info h3 {
+    margin: 5px 0;
+    font-size: 1.4rem;
+    color: var(--color-terciario);
+}
+
+.descripcion {
+    background-color: var(--color-quinto);
+    color: white;
+    padding: 1rem;
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    max-height: 100%;
+    transform: translateY(101%);
+    overflow-y: auto;
+    transition: transform 0.4s ease-in-out;
+    z-index: 10;
+    font-size: 0.95rem;
+}
+
+.personaje:hover .descripcion {
+    transform: translateY(0);
+}
+
+.descripcion h3 {
+    margin-top: 0;
+    color: var(--color-terciario);
+}
+
+form img {
+    height: 60px;
+    margin-right: 15px;
+}
+
+    </style>
+</head>
+<body>
+
+<header>
+    <form id="form">
+        <input type="text" id="search" class="search" placeholder="Buscar personaje">
+    </form>
+</header>
+<main id="main"></main>
+
+<script>
+    const API_URL = 'https://dragonball-api.com/api/characters';
+
+    const main = document.getElementById('main');
+    const form = document.getElementById('form');
+    const search = document.getElementById('search');
+
+    // Obtener todos los personajes al cargar
+    getCharacters(API_URL);
+
+    async function getCharacters(url) {
+        const res = await fetch(url);
+        const data = await res.json();
+        showCharacters(data.items || data);
+    }
+
+    function showCharacters(characters) {
+        main.innerHTML = '';
+        characters.forEach((char) => {
+            const { id, name, image, ki, maxKi, description, race } = char;
+            const charElement = document.createElement('div');
+            charElement.classList.add('personaje');
+            charElement.innerHTML = `
+                <img src="${image}" alt="${name}">
+                <div class="personaje-info">
+                    <h1>${id}</h1>
+                    <h3>${name}</h3>
+                    <p>${race}</p>
+                </div>
+                <div class="descripcion">
+                    <h3>Descripción</h3>
+                    <p>${description || "Sin descripción disponible"}</p>
+                    <p><strong>Ki:</strong> ${ki}</p>
+                    <p><strong>Max Ki:</strong> ${maxKi}</p>
+                </div>
+            `;
+            main.appendChild(charElement);
+        });
+    }
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const searchTerm = search.value.trim().toLowerCase();
+        if (searchTerm) {
+            const res = await fetch(`${API_URL}?name=${searchTerm}`);
+            const data = await res.json();
+            showCharacters(data.items || []);
+            search.value = '';
+        } else {
+            getCharacters(API_URL);
+        }
+    });
+</script>
+
+</body>
+</html>

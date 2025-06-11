@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Titulo</title>
+</head>
+<body>
+    <style>
+    :root {
+    --bg-dark: #0f0f0f;
+    --card-bg: #1f1f1f;
+    --highlight: #00c3ff;
+    --contrast: #ffaa00;
+    --text: #eaeaea;
+}
+
+body {
+    background: linear-gradient(to right, #0f0f0f, #1a1a1a);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: var(--text);
+    margin: 0;
+}
+
+header {
+    background: var(--card-bg);
+    padding: 20px;
+    text-align: center;
+    border-bottom: 2px solid var(--highlight);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+form {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.search {
+    padding: 12px 20px;
+    font-size: 1rem;
+    border: 2px solid var(--highlight);
+    background-color: transparent;
+    color: var(--text);
+    border-radius: 30px;
+    transition: all 0.3s ease;
+    width: 60%;
+    max-width: 500px;
+}
+
+.search::placeholder {
+    color: #aaa;
+}
+
+.search:focus {
+    outline: none;
+    background-color: #111;
+}
+
+main {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 24px;
+    padding: 30px;
+}
+
+.user {
+    background: var(--card-bg);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 20px rgba(0, 195, 255, 0.2);
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.user:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 12px 30px rgba(255, 64, 129, 0.3);
+}
+
+.user img {
+    width: 100%;
+    height: 320px;
+    object-fit: cover;
+    border-bottom: 3px solid var(--highlight);
+}
+
+.user-info {
+    padding: 15px;
+    text-align: center;
+}
+
+.user-info h1 {
+    color: var(--contrast);
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.user-info h3 {
+    margin: 5px 0;
+    font-size: 1.3rem;
+    color: var(--highlight);
+}
+
+.user-info span {
+    font-size: 0.95rem;
+    color: #bbb;
+}
+
+.descripcion {
+    padding: 15px;
+    font-size: 0.9rem;
+    text-align: center;
+    background: #161616;
+    color: #ccc;
+}
+</style>
+    <header>
+        <form id="form">
+            <input type="text" id="search" class="search" placeholder="Buscar Personaje">
+        </form>
+    </header>
+    <main id="main">
+
+    </main>
+
+    <script>
+        const API_URL_HP = 'https://hp-api.onrender.com/api/characters';
+        const API_URL_RM = 'https://rickandmortyapi.com/api/character';
+    
+        const main = document.getElementById('main');
+        const form = document.getElementById('form');
+        const search = document.getElementById('search');
+    
+        getCharacters();
+    
+        async function getCharacters(searchTerm = '') {
+            main.innerHTML = '';
+    
+            try {
+                const resHP = await fetch(API_URL_HP);
+                const dataHP = await resHP.json();
+                const filteredHP = searchTerm
+                    ? dataHP.filter(c => c.name.toLowerCase().includes(searchTerm))
+                    : dataHP;
+                showHPCharacters(filteredHP);
+            } catch (err) {
+                console.error('Error al cargar personajes de HP:', err);
+            }
+    
+            try {
+                const resRM = await fetch(`${API_URL_RM}?name=${searchTerm}`);
+                const dataRM = await resRM.json();
+                showRMCharacters(dataRM.results || []);
+            } catch (err) {
+                console.error('Error al cargar personajes de Rick & Morty:', err);
+            }
+        }
+    
+        function showHPCharacters(characters) {
+            characters.forEach(({ name, image, house, species }) => {
+                const charElement = document.createElement('div');
+                charElement.classList.add('user');
+                charElement.innerHTML = `
+                    <img src="${image}" alt="${name}">
+                    <div class="user-info">
+                        <h1>HP</h1>
+                        <h3>${name}</h3>
+                        <span>${house || 'Sin casa'}</span>
+                    </div>
+                    <div class="descripcion">
+                        <p><strong>Casa:</strong> ${house || 'Desconocida'}<br><strong>Especie:</strong> ${species || 'Desconocida'}</p>
+                    </div>
+                `;
+                main.appendChild(charElement);
+            });
+        }
+    
+        function showRMCharacters(characters) {
+            characters.forEach(({ id, name, image, species, status, origin }) => {
+                const charElement = document.createElement('div');
+                charElement.classList.add('user');
+                charElement.innerHTML = `
+                    <img src="${image}" alt="${name}">
+                    <div class="user-info">
+                        <h1>RM-${id}</h1>
+                        <h3>${name}</h3>
+                        <span>${species}</span>
+                    </div>
+                    <div class="descripcion">
+                        <p><strong>Estado:</strong> ${status} <br> <strong>Origen:</strong> ${origin?.name || 'Desconocido'}</p>
+                    </div>
+                `;
+                main.appendChild(charElement);
+            });
+        }
+    
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const searchTerm = search.value.trim().toLowerCase();
+            getCharacters(searchTerm);
+            search.value = '';
+        });
+    </script>
+    
+</body>
+</html>
